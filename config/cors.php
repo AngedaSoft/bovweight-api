@@ -22,13 +22,17 @@ return [
     'allowed_origins' => [
         env('APP_URL', 'http://localhost:8000'),
         'http://localhost',
+        'http://localhost:5173',
         'http://localhost:8100',
         'http://localhost:4200',
         'capacitor://localhost',
         'ionic://localhost',
     ],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        '#^http://localhost(:\d+)?$#',
+        '#^http://127\.0\.0\.1(:\d+)?$#',
+    ],
 
     'allowed_headers' => ['*'],
 

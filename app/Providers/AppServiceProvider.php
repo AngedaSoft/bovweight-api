@@ -2,23 +2,36 @@
 
 namespace App\Providers;
 
+use App\Models\Animal;
+use App\Models\Finca;
+use App\Models\Pesaje;
+use App\Policies\AnimalPolicy;
+use App\Policies\FincaPolicy;
+use App\Policies\PesajePolicy;
+use App\Services\Ml\HttpMlEstimacionClient;
+use App\Services\Ml\MlEstimacionClient;
+use Illuminate\Http\Client\Factory as HttpFactory;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
+        $this->app->bind(MlEstimacionClient::class, function ($app) {
+            return new HttpMlEstimacionClient(
+                http: $app->make(HttpFactory::class),
+                baseUrl: config('services.ml.base_url'),
+                apiKey: config('services.ml.api_key'),
+                timeoutSeg: (int) config('services.ml.timeout', 30),
+            );
+        });
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        Gate::policy(Finca::class, FincaPolicy::class);
+        Gate::policy(Animal::class, AnimalPolicy::class);
+        Gate::policy(Pesaje::class, PesajePolicy::class);
     }
 }

@@ -31,4 +31,10 @@ return [
         ],
     ],
 
+    'ml' => [
+        'base_url' => env('AI_SERVICE_URL', env('ML_SERVICE_URL', 'http://localhost:5000')),
+        'api_key' => env('AI_SERVICE_TOKEN', env('ML_SERVICE_API_KEY')),
+        'timeout' => env('AI_SERVICE_TIMEOUT_SEG', env('ML_SERVICE_TIMEOUT_SEG', 30)),
+    ],
+
 ];

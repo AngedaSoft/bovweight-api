@@ -55,4 +55,9 @@ class Animal extends Model
     {
         return $this->hasOne(Pesaje::class)->latestOfMany('fecha');
     }
+
+    public function raza(): BelongsTo
+    {
+        return $this->belongsTo(Raza::class);
+    }
 }

@@ -18,7 +18,7 @@ return new class extends Migration
                 ->onDelete('restrict');
             $table->decimal('peso_original_kg', 8, 2);
             $table->decimal('peso_corregido_kg', 8, 2);
-            $table->string('motivo')->nullable();
+            $table->string('motivo', 500)->nullable();
             $table->dateTime('fecha')->useCurrent();
             $table->timestamps();
 
