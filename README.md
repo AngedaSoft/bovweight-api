@@ -89,16 +89,75 @@ config/
 └── cors.php                  Orígenes permitidos para la app móvil
 ```
 
-## Endpoints disponibles (Sprint 1)
+## Endpoints disponibles
 
 | Método | Ruta | Auth | Descripción |
 |---|---|---|---|
 | GET | `/api/health` | — | Health-check del servidor y BD |
+| POST | `/api/auth/register` | — | Registro de propietario / veterinario |
 | POST | `/api/auth/login` | — | Login con `correo` y `contrasena` |
 | POST | `/api/auth/logout` | Bearer | Revoca el token actual |
 | GET | `/api/auth/me` | Bearer | Devuelve el usuario autenticado |
+| GET/POST | `/api/fincas` | Bearer | Listar / crear fincas del usuario |
+| GET/PUT/DELETE | `/api/fincas/{id}` | Bearer | Ver / actualizar / eliminar finca |
+| GET/POST | `/api/animales` | Bearer | Listar (filtros: `finca_id`, `estado`, `arete`) / crear animal |
+| GET/PUT/DELETE | `/api/animales/{id}` | Bearer | Ver / actualizar / eliminar animal |
+| GET | `/api/razas` | Bearer | Catalogo de razas |
+| GET | `/api/animales/{id}/pesajes` | Bearer | Historial de pesajes del animal |
+| GET | `/api/pesajes/{id}` | Bearer | Detalle de un pesaje |
+| PATCH | `/api/pesajes/{id}/correccion` | Bearer | Corregir peso manualmente |
+| POST | `/api/estimaciones` | Bearer | Crear pesaje IA con foto o medidas manuales (`multipart/form-data`) |
 
-Más endpoints se agregarán en los Sprints 2 y 3 (ver `docs/milestones/`).
+## Arquitectura por capas (SOLID)
+
+```
+Http/Controllers/Api/   <-- transporte HTTP delgado
+Http/Requests/          <-- validacion declarativa (FormRequest)
+Http/Resources/         <-- serializacion JSON
+Services/               <-- logica de negocio (SRP por dominio)
+  Auth/                 <-- AuthService (registro/login/tokens)
+  Finca/                <-- FincaService
+  Animal/               <-- AnimalService
+  Pesaje/               <-- PesajeService (correccion + historial)
+  Estimacion/           <-- EstimacionService (orquesta llamada al ML)
+  Ml/                   <-- MlEstimacionClient (interface) + HttpMlEstimacionClient
+Policies/               <-- autorizacion granular por modelo
+Models/                 <-- Eloquent (entidades del dominio)
+```
+
+- **SRP**: cada servicio tiene una sola responsabilidad de negocio.
+- **OCP**: agregar un nuevo cliente del ML solo requiere implementar `MlEstimacionClient`.
+- **LSP**: cualquier `MlEstimacionClient` (real, fake en tests, stub) es sustituible.
+- **ISP**: la interface `MlEstimacionClient` tiene un solo metodo `estimar`.
+- **DIP**: `EstimacionService` recibe la interface, no la implementacion HTTP concreta
+  (ver `AppServiceProvider::register`).
+
+## Cuentas demo (creadas por el seeder)
+
+| Rol           | Correo                       | Contrasena |
+|---------------|------------------------------|------------|
+| Administrador | admin@bovweight.local        | admin12345 |
+| Propietario   | ganadero@bovweight.local     | ganadero1  |
+
+## Levantar con Docker
+
+Este repo trae `Dockerfile` con Nginx + php-fpm + supervisord. El orquestador
+unico para la pila completa (API + MySQL + ML + web + mobile) vive en
+[`../bovweight-deploy`](../bovweight-deploy). Para correr solo este servicio:
+
+```bash
+docker build -t bovweight-api .
+docker run --rm -p 8000:80 --env-file .env.docker bovweight-api
+```
+
+## Testing
+
+```bash
+./vendor/bin/phpunit            # 19 tests cubren auth, fincas, animales, pesajes y estimacion
+```
+
+Los tests usan SQLite en memoria; ver `phpunit.xml`. El cliente del ML se
+sustituye por un fake via `$this->app->instance(MlEstimacionClient::class, ...)`.
 
 ## Git Flow y convenciones
 
