@@ -35,9 +35,26 @@ class EstimacionController extends Controller
                 'error' => $e->getMessage(),
                 'codigo' => $e->codigo,
                 'detalles' => $e->detalles,
-            ], 502);
+            ], $this->statusParaCodigoMl($e->codigo));
         }
 
         return new PesajeResource($pesaje);
+    }
+
+    /**
+     * Mapea los codigos de error del microservicio ML al status HTTP correcto.
+     *
+     * - 422 cuando es un problema de la entrada del usuario (sin medidas, sin
+     *   raza asignada, deteccion fallida).
+     * - 502 solo cuando el servicio remoto no esta disponible o responde mal.
+     */
+    private function statusParaCodigoMl(?string $codigo): int
+    {
+        return match ($codigo) {
+            'ENTRADA_INSUFICIENTE',
+            'DETECCION_FALLIDA',
+            'RAZA_REQUERIDA' => 422,
+            default => 502,
+        };
     }
 }
