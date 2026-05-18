@@ -16,7 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->statefulApi();
+        // La app movil, el panel web y los tests usan Bearer tokens via Sanctum.
+        // No habilitamos `statefulApi()` (que exigiria CSRF cookie + XSRF header)
+        // porque ningun cliente actual usa sesion por cookies.
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (AuthenticationException $e, Request $request) {
