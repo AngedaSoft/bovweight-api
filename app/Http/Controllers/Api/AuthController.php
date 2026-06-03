@@ -9,6 +9,7 @@ use App\Http\Resources\UserResource;
 use App\Services\Auth\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -52,6 +53,62 @@ class AuthController extends Controller
     {
         return response()->json([
             'user' => new UserResource($request->user()),
+        ]);
+    }
+
+    /**
+     * PATCH /api/auth/me
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        $validated = $request->validate([
+            'nombre_completo' => ['sometimes', 'required', 'string', 'max:255'],
+            'correo' => [
+                'sometimes', 
+                'required', 
+                'email', 
+                'max:255', 
+                Rule::unique('users', 'correo')->ignore($user->id)
+            ],
+        ]);
+        
+        $usuarioActualizado = $this->auth->actualizarPerfil($user, $validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Perfil actualizado correctamente.',
+            'user' => new UserResource($usuarioActualizado),
+        ]);
+    }
+
+    /**
+     * POST /api/auth/cambiar-contrasena
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'contrasena_actual' => ['required', 'string'],
+            'nueva_contrasena' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $exito = $this->auth->cambiarContrasena(
+            $request->user(),
+            $request->input('contrasena_actual'),
+            $request->input('nueva_contrasena')
+        );
+
+        if (!$exito) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La contraseña actual es incorrecta.'
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Contraseña modificada correctamente.'
         ]);
     }
 }

@@ -14,7 +14,10 @@ class RebanoResource extends JsonResource
             'finca_id' => $this->finca_id,
             'nombre' => $this->nombre,
             'proposito' => $this->proposito,
-            'fecha_creacion' => $this->fecha_creacion?->toDateString(),
+            'fecha_creacion' => $this->fecha_creacion ? $this->fecha_creacion->format('Y-m-dat') : null,
+            'animales_count' => $this->whenCounted('animales'),
+            'created_at' => $this->created_at->toIso8601String(),
+            'updated_at' => $this->updated_at->toIso8601String(),
         ];
     }
 }
