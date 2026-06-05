@@ -15,7 +15,6 @@ class DashboardService
             ->where('estado', 'activo')
             ->count();
 
-        // Peso total acumulado e histórico de GPD mediante subconsultas optimizadas
         // Traemos el último pesaje de cada animal activo en la finca para saber su peso actual
         $pesajesActuales = DB::table('animales')
             ->join('pesajes', 'animales.id', '=', 'pesajes.animal_id')
@@ -32,19 +31,29 @@ class DashboardService
 
         $pesoTotalAcumulado = $pesajesActuales->sum('peso_real');
 
-        // Cálculo de GPD Promedio de la Finca (Comparación entre el primer y último pesaje de cada animal)
-        $gpdData = DB::table('pesajes')
-            ->join('animales', 'pesajes.animal_id', '=', 'animales.id')
+        /* 
+        |--------------------------------------------------------------------------
+        | CORRECCIÓN DEL BUG: Cálculo de GPD por Fechas Extremanas (Primer vs Último)
+        |--------------------------------------------------------------------------
+        | Obtenemos la primera y última fecha de pesaje de cada animal activo,
+        | y mediante subconsultas extraemos el peso exacto de esas fechas específicas.
+        */
+        $gpdData = DB::table('pesajes as p')
+            ->join('animales as a', 'p.animal_id', '=', 'a.id')
             ->select(
-                'pesajes.animal_id',
-                DB::raw("MIN(pesajes.fecha) as primera_fecha"),
-                DB::raw("MAX(pesajes.fecha) as ultima_fecha"),
-                DB::raw("MIN(CASE WHEN pesajes.fue_corregido THEN pesajes.peso_corregido_kg ELSE pesajes.peso_estimado_kg END) as primer_peso"),
-                DB::raw("MAX(CASE WHEN pesajes.fue_corregido THEN pesajes.peso_corregido_kg ELSE pesajes.peso_estimado_kg END) as ultimo_peso")
+                'p.animal_id',
+                DB::raw("MIN(p.fecha) as primera_fecha"),
+                DB::raw("MAX(p.fecha) as ultima_fecha"),
+                // Subconsulta para capturar el peso exacto en la primera fecha
+                DB::raw("(SELECT CASE WHEN p1.fue_corregido THEN p1.peso_corregido_kg ELSE p1.peso_estimado_kg END 
+                          FROM pesajes p1 WHERE p1.animal_id = p.animal_id ORDER BY p1.fecha ASC LIMIT 1) as primer_peso"),
+                // Subconsulta para capturar el peso exacto en la última fecha
+                DB::raw("(SELECT CASE WHEN p2.fue_corregido THEN p2.peso_corregido_kg ELSE p2.peso_estimado_kg END 
+                          FROM pesajes p2 WHERE p2.animal_id = p.animal_id ORDER BY p2.fecha DESC LIMIT 1) as ultimo_peso")
             )
-            ->where('animales.finca_id', $fincaId)
-            ->where('animales.estado', 'activo')
-            ->groupBy('pesajes.animal_id')
+            ->where('a.finca_id', $fincaId)
+            ->where('a.estado', 'activo')
+            ->groupBy('p.animal_id')
             ->get();
 
         $gpdPromedioFinca = 0;
@@ -54,6 +63,7 @@ class DashboardService
             if ($registro->primera_fecha !== $registro->ultima_fecha) {
                 $dias = Carbon::parse($registro->primera_fecha)->diffInDays(Carbon::parse($registro->ultima_fecha));
                 if ($dias > 0) {
+                    // Ahora resta los pesos cronológicos reales, no los máximos/mínimos numéricos
                     $gananciaPeso = $registro->ultimo_peso - $registro->primer_peso;
                     $gpdPromedioFinca += ($gananciaPeso / $dias);
                     $animalesConMultiplesPesajes++;
@@ -78,8 +88,7 @@ class DashboardService
                     });
             })
             ->select('id', 'nombre', 'arete_senasa')
-            ->take(5) /* -----OJO AQUI MUCHACHOS----, retorna las top 5 alertas críticas 
-            para no saturar el dashboard, si se ocupan mas solo se cambia el numero*/ 
+            ->take(5) 
             ->get()
             ->map(function($animal) {
                 return [
@@ -89,12 +98,12 @@ class DashboardService
                 ];
             });
 
-       return [
-    'finca_id' => $fincaId,
-    'total_cabezas' => $totalCabezas,
-    'peso_total_acumulado_kg' => (float) round($pesoTotalAcumulado, 2), // <- Casteo estricto a float
-    'gpd_promedio_finca_kg' => (float) $gpdFinal,                       // <- Casteo estricto a float
-    'alertas' => $animalesDesactualizados
+        return [
+            'finca_id' => $fincaId,
+            'total_cabezas' => $totalCabezas,
+            'peso_total_acumulado_kg' => (float) round($pesoTotalAcumulado, 2), 
+            'gpd_promedio_finca_kg' => (float) $gpdFinal,                     
+            'alertas' => $animalesDesactualizados
         ];
     }
 }

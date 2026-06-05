@@ -45,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //  Notificaciones / Alertas (Requerimiento #3)
     Route::prefix('notificaciones')->group(function () {
         Route::get('/', [NotificacionController::class, 'index'])->name('notificaciones.index');
-        Route::patch('/{id}/leer', [NotificacionController::class, 'marcarLeida'])->name('notificaciones.leer');
+        Route::patch('/{notificacion}/leer', [NotificacionController::class, 'marcarLeida'])->name('notificaciones.leer');
         Route::post('/leer-todas', [NotificacionController::class, 'marcarTodasLeidas'])->name('notificaciones.leer-todas');
     });
 

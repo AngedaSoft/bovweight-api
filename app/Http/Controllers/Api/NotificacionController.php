@@ -10,35 +10,32 @@ use App\Http\Requests\Notificacion\ReadNotificacionRequest;
 use App\Http\Requests\Notificacion\MarkAllReadRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
 
 class NotificacionController extends Controller
 {
+    // Mantenemos el constructor con promoción de propiedades (limpio y moderno)
     public function __construct(private readonly NotificacionService $service)
     {
     }
 
     /**
      * GET /notificaciones
+     * 
+     * CORRECCIÓN: Retornamos la colección directamente. 
+     * Laravel se encarga de envolverlo en 'data' y mantiene soporte para paginación limpia.
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): AnonymousResourceCollection
     {
         $notificaciones = $this->service->listarParaUsuario($request->user());
         
-        return response()->json([
-            'success' => true,
-            'data' => NotificacionResource::collection($notificaciones)
-        ]);
+        return NotificacionResource::collection($notificaciones);
     }
 
-    /**
-     * PATCH /notificaciones/{id}/leer
-     */
-    public function marcarLeida(string $id, ReadNotificacionRequest $request): JsonResponse
+    
+    public function marcarLeida(Notificacion $notificacion, ReadNotificacionRequest $request): JsonResponse
     {
-        // Al no usar Route Model Binding en la ruta por usar {id}, buscamos el modelo manualmente
-        $notificacion = Notificacion::findOrFail($id);
-
         Gate::authorize('update', $notificacion);
 
         $actualizada = $this->service->marcarComoLeida($notificacion);

@@ -3,15 +3,19 @@
 namespace App\Services\Rebano;
 
 use App\Models\Rebano;
+use App\Models\User; // <- CORRECCIÓN: Importación para el tipado del parámetro
 use Illuminate\Database\Eloquent\Collection;
 
 class RebanoService
 {
-    public function listarTodos(): Collection
+    /**
+     * CORRECCIÓN: Ahora recibe el usuario por parámetro ($user) 
+     * y elimina la dependencia directa de auth()->id() de acuerdo a la revisión.
+     */
+    public function listarTodos(User $user): Collection
     {
-        // rafa, aqui es donde trae los rebaños vinculados a las fincas del usuario autenticado
-        return Rebano::whereHas('finca', function ($query) {
-            $query->where('propietario_id', auth()->id());
+        return Rebano::whereHas('finca', function ($query) use ($user) {
+            $query->where('propietario_id', $user->id);
         })->withCount('animales')->get();
     }
 

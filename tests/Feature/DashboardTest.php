@@ -34,7 +34,6 @@ class DashboardTest extends TestCase
             'estado' => 'activo'
         ]);
 
-        // Insertando un pesaje controlado usando DB nativo
         DB::table('pesajes')->insert([
             'animal_id' => $animal->id,
             'usuario_id' => $user->id,
@@ -48,15 +47,33 @@ class DashboardTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->getJson("/api/dashboard?finca_id={$finca->id}");
 
-        // Aserción corregida para evitar el error estricto de tipos con decimales vacíos
+        // Ajustado al formato plano consistente solicitado {finca_id: ...}
         $response->assertStatus(200)
             ->assertJson([
-                'success' => true,
-                'data' => [
-                    'finca_id' => $finca->id,
-                    'total_cabezas' => 1,
-                    'peso_total_acumulado_kg' => 450,
-                ]
+                'finca_id' => $finca->id,
+                'total_cabezas' => 1,
+                'peso_total_acumulado_kg' => 450,
             ]);
+    }
+
+    public function test_usuario_no_puede_ver_dashboard_de_finca_ajena()
+    {
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        
+        $fincaAjena = Finca::create([
+            'propietario_id' => $user2->id,
+            'nombre' => 'Finca Ajena',
+            'provincia' => 'Guanacaste',
+            'canton' => 'Liberia',
+            'distrito' => 'Liberia',
+            'fecha_creacion' => now()->format('Y-m-d')
+        ]);
+
+        $response = $this->actingAs($user1, 'sanctum')
+            ->getJson("/api/dashboard?finca_id={$fincaAjena->id}");
+
+        // Retorna 403 Forbidden por políticas de seguridad
+        $response->assertStatus(403);
     }
 }

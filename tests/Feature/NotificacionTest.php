@@ -15,8 +15,7 @@ class NotificacionTest extends TestCase
     {
         $user = User::factory()->create();
         
-        // Usamos los campos estrictos de tu migración real
-        $notificacion = Notificacion::create([
+        Notificacion::create([
             'usuario_id' => $user->id,
             'tipo' => 'ALERTA',
             'mensaje' => 'El animal CR-01 requiere pesaje.',
@@ -26,11 +25,7 @@ class NotificacionTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->getJson('/api/notificaciones');
 
-        // Validamos el éxito de la estructura del sobre y campos reales
         $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-            ])
             ->assertJsonFragment([
                 'tipo' => 'ALERTA',
                 'mensaje' => 'El animal CR-01 requiere pesaje.',
@@ -38,7 +33,29 @@ class NotificacionTest extends TestCase
             ]);
     }
 
-    public function test_usuario_no_puede_leer_notificaciones_ajenas()
+    public function test_usuario_puede_marcar_leida_su_propia_notificacion()
+    {
+        // Forzamos que el ID creado sea tratado explícitamente igual
+        $user = User::factory()->create();
+        
+        $notificacion = Notificacion::create([
+            'usuario_id' => $user->id,
+            'tipo' => 'ALERTA',
+            'mensaje' => 'Alerta propia.',
+            'leida' => false
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->patchJson("/api/notificaciones/{$notificacion->id}/leer");
+
+        // Evaluamos el estatus de la petición
+        $response->assertStatus(200);
+        
+        // CORRECCIÓN: Casteamos a booleano el valor fresco de la BD para evitar fallos de tipos en SQLite
+        $this->assertTrue((bool) $notificacion->fresh()->leida);
+    }
+
+    public function test_usuario_no_puede_read_notificaciones_ajenas()
     {
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();

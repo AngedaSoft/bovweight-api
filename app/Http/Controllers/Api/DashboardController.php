@@ -27,9 +27,7 @@ class DashboardController extends Controller
 
         $metricas = $this->dashboardService->obtenerMetricasFinca($fincaId);
 
-        return response()->json([
-            'success' => true,
-            'data' => $metricas
-        ]);
+        // CORRECCIÓN: Retornamos las métricas directamente sin envoltorios extras para mantener la consistencia
+        return response()->json($metricas);
     }
 }

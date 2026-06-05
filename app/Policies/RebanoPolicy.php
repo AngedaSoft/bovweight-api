@@ -8,6 +8,19 @@ use App\Models\Finca;
 
 class RebanoPolicy
 {
+    /**
+     * Corre antes de cualquier otro método. Si es admin, aprueba el acceso de una vez.
+     */
+    public function before(User $user, string $ability): ?bool
+    {
+        // Se cambió $user->email por $user->correo
+        if ($user->correo === 'admin@bovweight.local') {
+            return true;
+        }
+
+        return null; // Si no es admin, continúa con las reglas de abajo
+    }
+
     public function viewAny(User $user): bool
     {
         return true; 
@@ -15,33 +28,28 @@ class RebanoPolicy
 
     public function view(User $user, Rebano $rebano): bool
     {
-        return $user->id === $rebano->finca->propietario_id || $user->email === 'admin@bovweight.local';
+        return $user->id === $rebano->finca->propietario_id;
     }
 
     public function create(User $user): bool
     {
-        /* En esta parte se puede verificar si el usuario es dueño de la finca enviada en el request, 
-        si necesitan hacer cambios me dicen para explicarles*/
-        /* Tambien soporta capturar el campo tanto en
-         form-data como en JSON crudo (peticiones de test) */
         $fincaId = request()->input('finca_id') ?? request()->json('finca_id');
-    
-    if ($fincaId) {
-        $finca = \App\Models\Finca::find($fincaId);
-        return $finca && ($user->id === $finca->propietario_id || $user->email === 'admin@bovweight.local');
+        
+        if ($fincaId) {
+            $finca = Finca::find($fincaId);
+            return $finca && $user->id === $finca->propietario_id;
+        }
+        
+        return true;
     }
-    
-    return true;
-}
-      
 
     public function update(User $user, Rebano $rebano): bool
     {
-        return $user->id === $rebano->finca->propietario_id || $user->email === 'admin@bovweight.local';
+        return $user->id === $rebano->finca->propietario_id;
     }
 
     public function delete(User $user, Rebano $rebano): bool
     {
-        return $user->id === $rebano->finca->propietario_id || $user->email === 'admin@bovweight.local';
+        return $user->id === $rebano->finca->propietario_id;
     }
 }
