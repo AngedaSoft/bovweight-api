@@ -7,17 +7,9 @@ use App\Models\User;
 
 class NotificacionPolicy
 {
-    /**
-     * Intercepta todas las revisiones. Si es el correo de administración, concede el permiso de inmediato.
-     */
-    public function before(User $user, string $ability): ?bool
+    public function before(User $user): ?bool
     {
-        // Corrección del campo estricto de usuario (correo en lugar de email)
-        if ($user->correo === 'admin@bovweight.local') {
-            return true;
-        }
-
-        return null; // Continúa con las reglas de abajo si no es admin
+        return $user->esAdministrador() ? true : null;
     }
 
     public function viewAny(User $user): bool
@@ -27,6 +19,8 @@ class NotificacionPolicy
 
     public function update(User $user, Notificacion $notificacion): bool
     {
-        return $user->id == $notificacion->usuario_id;
+        // El cast `usuario_id => integer` en el modelo Notificacion asegura
+        // que la comparacion estricta funcione tambien con SQLite (driver de tests).
+        return $user->id === $notificacion->usuario_id;
     }
 }
