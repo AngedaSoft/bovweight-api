@@ -3,15 +3,19 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\NewAccessToken;
 
 /**
- * Encapsula la logica de autenticacion (registro, login, emision de tokens).
+ * Encapsula la logica de autenticacion (registro, login, emision de tokens)
+ * y los flujos de gestion del propio usuario (perfil, contrasena, avatar).
  *
- * SRP: solo se preocupa por credenciales y tokens. Los controladores delegan
- * en este servicio para evitar acumular logica en el transporte HTTP.
+ * SRP: solo se preocupa por credenciales y datos del usuario autenticado.
+ * Los controladores delegan en este servicio para evitar acumular logica
+ * en el transporte HTTP.
  */
 class AuthService
 {
@@ -53,28 +57,45 @@ class AuthService
         return $usuario->createToken($nombreDispositivo, ['*'], now()->addDays(60));
     }
 
-    //  MÉTODOS DE NEGOCIO AGREGADOS (SRP) 
-
     /**
      * Actualizar los datos del perfil de un usuario de forma segura.
      */
     public function actualizarPerfil(User $user, array $datos): User
     {
-        $user->update($datos);
-        return $user;
+        $user->fill($datos)->save();
+        return $user->fresh();
     }
 
     /**
-     * Cambiar la contraseña validando la seguridad del hash.
+     * Cambia la contrasena validando que el usuario conoce la anterior.
      */
     public function cambiarContrasena(User $user, string $actual, string $nueva): bool
     {
-        if (!Hash::check($actual, $user->contrasena_hash)) {
+        if (! Hash::check($actual, $user->contrasena_hash)) {
             return false;
         }
 
         return $user->update([
-            'contrasena_hash' => Hash::make($nueva)
+            'contrasena_hash' => Hash::make($nueva),
         ]);
+    }
+
+    /**
+     * Guarda el archivo de avatar en el disco `public`, actualiza la URL
+     * en el modelo y limpia el archivo anterior si existia.
+     */
+    public function actualizarAvatar(User $user, UploadedFile $archivo): User
+    {
+        $disco = Storage::disk('public');
+
+        if ($user->avatar_url && $disco->exists($user->avatar_url)) {
+            $disco->delete($user->avatar_url);
+        }
+
+        $ruta = $archivo->store("avatars/{$user->id}", 'public');
+
+        $user->update(['avatar_url' => $ruta]);
+
+        return $user->fresh();
     }
 }

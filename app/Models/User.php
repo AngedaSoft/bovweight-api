@@ -19,6 +19,7 @@ class User extends Authenticatable
         'contrasena_hash',
         'rol',
         'estado',
+        'avatar_url',
         'fecha_registro',
         'ultimo_acceso',
     ];
