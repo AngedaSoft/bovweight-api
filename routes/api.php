@@ -57,7 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('rebanos', RebanoController::class);
 
     //  Animales y Catálogos
-    Route::apiResource('animales', AnimalController::class);
+    Route::apiResource('animales', AnimalController::class)->parameters(['animales' => 'animal']);
     Route::get('/razas', [RazaController::class, 'index'])->name('razas.index');
 
     //  Pesajes e Inteligencia Artificial

@@ -27,6 +27,7 @@ class UpdateAnimalRequest extends FormRequest
             'sexo' => ['sometimes', 'in:macho,hembra'],
             'estado' => ['sometimes', 'in:activo,inactivo_vendido,inactivo_muerto,inactivo_traslado,inactivo_transferido'],
             'motivo_inactivacion' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'fecha_nacimiento_aprox' => ['sometimes', 'nullable', 'date', 'before_or_equal:today'],
             'fecha_inactivacion' => ['sometimes', 'nullable', 'date'],
         ];
     }
