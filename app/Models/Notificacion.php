@@ -25,6 +25,7 @@ class Notificacion extends Model
     protected function casts(): array
     {
         return [
+            'usuario_id' => 'integer',
             'payload' => 'array',
             'fecha_programada' => 'datetime',
             'fecha_envio' => 'datetime',

@@ -6,28 +6,29 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Rebano\StoreRebanoRequest;
 use App\Http\Requests\Rebano\UpdateRebanoRequest;
 use App\Http\Resources\RebanoResource;
-use App\Models\Rebano;
 use App\Models\Finca;
+use App\Models\Rebano;
 use App\Services\Rebano\RebanoService;
-use Illuminate\Http\Request; 
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Gate;
 
 class RebanoController extends Controller
 {
-    // Inyectamos el servicio mediante el constructor de forma limpia
-    public function __construct(protected RebanoService $rebanoService) {}
+    public function __construct(protected RebanoService $service)
+    {
+    }
 
     /**
      * GET /api/rebanos
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        Gate::authorize('viewAny', Rebano::class);
-        
-        // CORRECCIÓN: Se pasa el usuario autenticado por parámetro, eliminando el auth() global del Service
-        return RebanoResource::collection($this->rebanoService->listarTodos($request->user()));
+        $this->authorize('viewAny', Rebano::class);
+
+        return RebanoResource::collection(
+            $this->service->listarTodos($request->user())
+        );
     }
 
     /**
@@ -36,9 +37,9 @@ class RebanoController extends Controller
     public function porFinca(int $fincaId): AnonymousResourceCollection
     {
         $finca = Finca::findOrFail($fincaId);
-        Gate::authorize('view', $finca); // Verifica que el usuario tenga acceso a la finca
+        $this->authorize('view', $finca);
 
-        return RebanoResource::collection($this->rebanoService->listarPorFinca($fincaId));
+        return RebanoResource::collection($this->service->listarPorFinca($fincaId));
     }
 
     /**
@@ -46,9 +47,13 @@ class RebanoController extends Controller
      */
     public function store(StoreRebanoRequest $request): RebanoResource
     {
-        Gate::authorize('create', Rebano::class);
-        $rebano = $this->rebanoService->crear($request->validated());
-        return new RebanoResource($rebano);
+        $datos = $request->validated();
+        $finca = Finca::findOrFail($datos['finca_id']);
+
+        // El policy recibe la Finca para evaluar pertenencia sin tocar el request.
+        $this->authorize('create', [Rebano::class, $finca]);
+
+        return new RebanoResource($this->service->crear($datos));
     }
 
     /**
@@ -56,7 +61,8 @@ class RebanoController extends Controller
      */
     public function show(Rebano $rebano): RebanoResource
     {
-        Gate::authorize('view', $rebano);
+        $this->authorize('view', $rebano);
+
         return new RebanoResource($rebano->loadCount('animales'));
     }
 
@@ -65,9 +71,9 @@ class RebanoController extends Controller
      */
     public function update(UpdateRebanoRequest $request, Rebano $rebano): RebanoResource
     {
-        Gate::authorize('update', $rebano);
-        $actualizado = $this->rebanoService->actualizar($rebano, $request->validated());
-        return new RebanoResource($actualizado);
+        $this->authorize('update', $rebano);
+
+        return new RebanoResource($this->service->actualizar($rebano, $request->validated()));
     }
 
     /**
@@ -75,8 +81,10 @@ class RebanoController extends Controller
      */
     public function destroy(Rebano $rebano): Response
     {
-        Gate::authorize('delete', $rebano);
-        $this->rebanoService->eliminar($rebano);
+        $this->authorize('delete', $rebano);
+
+        $this->service->eliminar($rebano);
+
         return response()->noContent();
     }
 }

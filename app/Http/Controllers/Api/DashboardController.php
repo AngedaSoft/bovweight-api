@@ -5,29 +5,32 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Finca;
 use App\Services\Dashboard\DashboardService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function __construct(protected DashboardService $dashboardService) {}
+    public function __construct(protected DashboardService $dashboardService)
+    {
+    }
 
+    /**
+     * GET /api/dashboard?finca_id=...
+     */
     public function index(Request $request): JsonResponse
     {
         $request->validate([
             'finca_id' => ['required', 'integer', 'exists:fincas,id'],
         ]);
 
-        $fincaId = (int) $request->input('finca_id');
-        $finca = Finca::findOrFail($fincaId);
+        $finca = Finca::findOrFail($request->integer('finca_id'));
 
-        // OJO ESTE DETALLE DE SEGURIDAD: El ganadero autenticado solo puede ver el dashboard de su propia finca
-        Gate::authorize('view', $finca);
+        // Un ganadero solo puede consultar metricas de sus propias fincas.
+        // FincaPolicy.before() concede acceso global al administrador.
+        $this->authorize('view', $finca);
 
-        $metricas = $this->dashboardService->obtenerMetricasFinca($fincaId);
-
-        // CORRECCIÓN: Retornamos las métricas directamente sin envoltorios extras para mantener la consistencia
-        return response()->json($metricas);
+        return response()->json(
+            $this->dashboardService->obtenerMetricasFinca($finca->id)
+        );
     }
 }
