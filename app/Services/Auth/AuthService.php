@@ -52,4 +52,29 @@ class AuthService
     {
         return $usuario->createToken($nombreDispositivo, ['*'], now()->addDays(60));
     }
+
+    //  MÉTODOS DE NEGOCIO AGREGADOS (SRP) 
+
+    /**
+     * Actualizar los datos del perfil de un usuario de forma segura.
+     */
+    public function actualizarPerfil(User $user, array $datos): User
+    {
+        $user->update($datos);
+        return $user;
+    }
+
+    /**
+     * Cambiar la contraseña validando la seguridad del hash.
+     */
+    public function cambiarContrasena(User $user, string $actual, string $nueva): bool
+    {
+        if (!Hash::check($actual, $user->contrasena_hash)) {
+            return false;
+        }
+
+        return $user->update([
+            'contrasena_hash' => Hash::make($nueva)
+        ]);
+    }
 }
