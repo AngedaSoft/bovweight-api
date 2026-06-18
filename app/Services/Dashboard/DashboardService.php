@@ -3,11 +3,46 @@
 namespace App\Services\Dashboard;
 
 use App\Models\Animal;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DashboardService
 {
+    public function obtenerPesoTotal(User $usuario, ?int $fincaId): array
+    {
+        $query = DB::table('animales')
+            ->join('pesajes', function ($join) {
+                $join->on('animales.id', '=', 'pesajes.animal_id')
+                    ->whereIn('pesajes.id', function ($sub) {
+                        $sub->select(DB::raw('MAX(id)'))
+                            ->from('pesajes')
+                            ->groupBy('animal_id');
+                    });
+            })
+            ->where('animales.estado', 'activo');
+
+        if ($fincaId !== null) {
+            $query->where('animales.finca_id', $fincaId);
+        } else {
+            $fincaIds = $usuario->fincasAccesibles()->pluck('id');
+            $query->whereIn('animales.finca_id', $fincaIds);
+        }
+
+        $resultado = $query->selectRaw(
+            'COUNT(animales.id) as animales_con_pesaje,
+             SUM(CASE WHEN pesajes.fue_corregido = 1
+                      THEN pesajes.peso_corregido_kg
+                      ELSE pesajes.peso_estimado_kg END) as peso_total_kg'
+        )->first();
+
+        return [
+            'peso_total_kg'       => (float) round($resultado->peso_total_kg ?? 0, 2),
+            'animales_con_pesaje' => (int) ($resultado->animales_con_pesaje ?? 0),
+            'finca_id'            => $fincaId,
+        ];
+    }
+
     public function obtenerMetricasFinca(int $fincaId): array
     {
         // Cabezas totales (solo activos)

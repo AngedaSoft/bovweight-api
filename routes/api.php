@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //  Dashboard Agregado (Requerimiento #8)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::get('/dashboard/peso', [DashboardController::class, 'pesoTotal'])->name('dashboard.peso');
 
     //  Notificaciones / Alertas (Requerimiento #3)
     Route::prefix('notificaciones')->group(function () {

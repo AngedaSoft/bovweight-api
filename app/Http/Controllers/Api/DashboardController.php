@@ -15,6 +15,27 @@ class DashboardController extends Controller
     }
 
     /**
+     * GET /api/dashboard/peso?finca_id=...  (finca_id opcional)
+     */
+    public function pesoTotal(Request $request): JsonResponse
+    {
+        $request->validate([
+            'finca_id' => ['nullable', 'integer', 'exists:fincas,id'],
+        ]);
+
+        $fincaId = $request->filled('finca_id') ? $request->integer('finca_id') : null;
+
+        if ($fincaId !== null) {
+            $finca = \App\Models\Finca::findOrFail($fincaId);
+            $this->authorize('view', $finca);
+        }
+
+        return response()->json(
+            $this->dashboardService->obtenerPesoTotal($request->user(), $fincaId)
+        );
+    }
+
+    /**
      * GET /api/dashboard?finca_id=...
      */
     public function index(Request $request): JsonResponse
