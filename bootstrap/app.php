@@ -22,15 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (AuthenticationException $e, Request $request) {
-            if ($request->is('api/*')) {
-                return response()->json(['error' => 'No autenticado.'], 401);
-            }
+            return response()->json(['error' => 'No autenticado.'], 401);
         });
 
         $exceptions->render(function (AuthorizationException $e, Request $request) {
-            if ($request->is('api/*')) {
-                return response()->json(['error' => $e->getMessage() ?: 'No autorizado.'], 403);
-            }
+            return response()->json(['error' => $e->getMessage() ?: 'No autorizado.'], 403);
         });
 
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
