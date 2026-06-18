@@ -70,6 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //  Pesajes e Inteligencia Artificial
     Route::get('/animales/{animal}/pesajes', [PesajeController::class, 'porAnimal'])->name('animales.pesajes');
+    Route::post('/animales/{animal}/pesajes', [PesajeController::class, 'store'])->name('animales.pesajes.store');
     Route::get('/pesajes/{pesaje}', [PesajeController::class, 'show'])->name('pesajes.show');
     Route::patch('/pesajes/{pesaje}/correccion', [PesajeController::class, 'corregir'])->name('pesajes.corregir');
     Route::post('/estimaciones', [EstimacionController::class, 'store'])->name('estimaciones.store');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pesaje\CorregirPesajeRequest;
+use App\Http\Requests\Pesaje\StorePesajeRequest;
 use App\Http\Resources\PesajeResource;
 use App\Models\Animal;
 use App\Models\Pesaje;
@@ -15,6 +16,13 @@ class PesajeController extends Controller
 {
     public function __construct(private readonly PesajeService $service)
     {
+    }
+
+    public function store(StorePesajeRequest $request, Animal $animal): PesajeResource
+    {
+        $this->authorize('view', $animal);
+        $pesaje = $this->service->crear($request->user(), $animal, $request->validated());
+        return new PesajeResource($pesaje);
     }
 
     public function porAnimal(Request $request, Animal $animal): AnonymousResourceCollection

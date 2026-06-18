@@ -12,6 +12,36 @@ use Illuminate\Support\Facades\DB;
 
 class PesajeService
 {
+    public function crear(User $usuario, Animal $animal, array $datos): Pesaje
+    {
+        $this->autorizar($usuario, $animal);
+
+        return Pesaje::create([
+            'animal_id'               => $animal->id,
+            'usuario_id'              => $usuario->id,
+            'fecha'                   => now(),
+            'peso_estimado_kg'        => $datos['peso_estimado_kg'],
+            'rango_confianza_kg'      => $datos['rango_confianza_kg'] ?? null,
+            'tipo'                    => $datos['tipo'] ?? 'ia',
+            'modelo_ia_version'       => $datos['modelo_ia_version'] ?? null,
+            'tiempo_procesamiento_seg'=> $datos['tiempo_procesamiento_seg'] ?? null,
+            'estado_procesamiento'    => ($datos['tipo'] ?? 'ia') === 'ia' ? 'procesada' : null,
+            'formula_zootecnica'      => $datos['formula_zootecnica'] ?? null,
+            'es_offline'              => (bool) ($datos['es_offline'] ?? false),
+            'perimetro_toracico_cm'   => $datos['perimetro_toracico_cm'] ?? null,
+            'largo_cuerpo_cm'         => $datos['largo_cuerpo_cm'] ?? null,
+            'fecha_medicion'          => $datos['fecha_medicion'] ?? now()->toDateString(),
+        ]);
+    }
+
+    private function autorizar(User $usuario, Animal $animal): void
+    {
+        if ($usuario->esAdministrador()) return;
+        if ($animal->finca?->propietario_id !== $usuario->id) {
+            throw new \Illuminate\Auth\Access\AuthorizationException('No puede pesar animales de fincas ajenas.');
+        }
+    }
+
     public function listarPorAnimal(User $usuario, Animal $animal, int $porPagina = 20): LengthAwarePaginator
     {
         return $this->consultaParaUsuario($usuario)
