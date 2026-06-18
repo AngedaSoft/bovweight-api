@@ -46,11 +46,20 @@ class FincaService
         $finca->delete();
     }
 
+    /**
+     * Filtra fincas visibles al usuario:
+     *  - administrador: todas
+     *  - propietario: las suyas
+     *  - veterinario (u otro rol) con AccesoCompartido vigente: las que tiene compartidas
+     */
     private function consultaParaUsuario(User $usuario): Builder
     {
         if ($usuario->esAdministrador()) {
             return Finca::query();
         }
-        return Finca::query()->where('propietario_id', $usuario->id);
+        return Finca::query()->where(function ($q) use ($usuario) {
+            $q->where('propietario_id', $usuario->id)
+              ->orWhereHas('accesosVigentes', fn ($sub) => $sub->where('usuario_id', $usuario->id));
+        });
     }
 }

@@ -42,11 +42,18 @@ class PesajeService
         });
     }
 
+    /**
+     * Visibilidad de pesajes: propietario directo o usuario con AccesoCompartido
+     * vigente sobre la finca del animal.
+     */
     private function consultaParaUsuario(User $usuario): Builder
     {
         if ($usuario->esAdministrador()) {
             return Pesaje::query();
         }
-        return Pesaje::query()->whereHas('animal.finca', fn ($q) => $q->where('propietario_id', $usuario->id));
+        return Pesaje::query()->whereHas('animal.finca', function ($q) use ($usuario) {
+            $q->where('propietario_id', $usuario->id)
+              ->orWhereHas('accesosVigentes', fn ($sub) => $sub->where('usuario_id', $usuario->id));
+        });
     }
 }

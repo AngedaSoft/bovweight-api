@@ -60,11 +60,18 @@ class AnimalService
         $animal->delete();
     }
 
+    /**
+     * Filtra animales por visibilidad: propietario directo o usuario con
+     * AccesoCompartido vigente sobre la finca.
+     */
     private function consultaParaUsuario(User $usuario): Builder
     {
         if ($usuario->esAdministrador()) {
             return Animal::query();
         }
-        return Animal::query()->whereHas('finca', fn ($q) => $q->where('propietario_id', $usuario->id));
+        return Animal::query()->whereHas('finca', function ($q) use ($usuario) {
+            $q->where('propietario_id', $usuario->id)
+              ->orWhereHas('accesosVigentes', fn ($sub) => $sub->where('usuario_id', $usuario->id));
+        });
     }
 }
