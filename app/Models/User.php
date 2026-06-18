@@ -81,6 +81,11 @@ class User extends Authenticatable
         return $this->hasMany(Notificacion::class, 'usuario_id');
     }
 
+    public function accesosCompartidos(): HasMany
+    {
+        return $this->hasMany(AccesoCompartido::class, 'usuario_id');
+    }
+
     // ===== Helpers de roles =====
 
     public function esPropietario(): bool

@@ -41,4 +41,36 @@ class Finca extends Model
     {
         return $this->hasMany(Animal::class);
     }
+
+    public function accesosCompartidos(): HasMany
+    {
+        return $this->hasMany(AccesoCompartido::class);
+    }
+
+    /**
+     * Permisos vigentes (activos y dentro de su rango de fechas) sobre esta finca.
+     */
+    public function accesosVigentes(): HasMany
+    {
+        return $this->hasMany(AccesoCompartido::class)
+            ->where('activo', true)
+            ->where(function ($q) {
+                $q->whereNull('fecha_fin')->orWhere('fecha_fin', '>', now());
+            });
+    }
+
+    public function permiteAccesoA(User $usuario, string $tipoRequerido = AccesoCompartido::TIPO_LECTURA): bool
+    {
+        if ($usuario->id === $this->propietario_id) {
+            return true;
+        }
+        $acceso = $this->accesosVigentes()->where('usuario_id', $usuario->id)->first();
+        if ($acceso === null) {
+            return false;
+        }
+        if ($tipoRequerido === AccesoCompartido::TIPO_EDICION) {
+            return $acceso->tipo_acceso === AccesoCompartido::TIPO_EDICION;
+        }
+        return true;
+    }
 }
