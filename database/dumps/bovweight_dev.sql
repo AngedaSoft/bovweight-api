@@ -159,8 +159,8 @@ CREATE TABLE `fincas` (
 --
 
 INSERT INTO `fincas` (`id`, `propietario_id`, `nombre`, `provincia`, `canton`, `distrito`, `fecha_creacion`, `created_at`, `updated_at`) VALUES
-(1, 2, 'Hacienda Los Llanos', 'Guanacaste', 'Liberia', 'Liberia', '2026-06-15', '2026-06-15 21:29:19', '2026-06-15 21:29:19'),
-(2, 1, 'Finca Flor', 'Guanacaste', 'Tilarán', 'Quebrada Grande', '2026-06-15', '2026-06-15 21:32:28', '2026-06-15 21:32:28');
+(1, 3, 'Hacienda Los Llanos', 'Guanacaste', 'Liberia', 'Liberia', '2026-06-15', '2026-06-15 21:29:19', '2026-06-18 05:00:00'),
+(2, 3, 'Finca Flor', 'Guanacaste', 'Tilarán', 'Quebrada Grande', '2026-06-15', '2026-06-15 21:32:28', '2026-06-18 05:00:00');
 
 -- --------------------------------------------------------
 
@@ -514,7 +514,8 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `nombre_completo`, `correo`, `contrasena_hash`, `rol`, `estado`, `avatar_url`, `fecha_registro`, `ultimo_acceso`, `remember_token`, `created_at`, `updated_at`) VALUES
 (1, 'Administrador BovWeight', 'admin@bovweight.local', '$2y$12$tQcLdAmRn5cKVmS3JX1e4O1qB003hUYdf56V6N55oRrS/FvnAVHNK', 'administrador', 'activo', 'avatars/1/rqwKxFmkDp5poCXvlp52uPFoSlDM02oK9yiYmf78.jpg', '2026-06-15', '2026-06-17 22:38:07', NULL, '2026-06-15 21:29:19', '2026-06-18 04:38:07'),
-(2, 'Don Juan Ganadero', 'ganadero@bovweight.local', '$2y$12$vCBo5n6kIeFQts7HngCKyO1jZD6HLDe7DhcMx6YBpyPZC5MgwaYSO', 'propietario', 'activo', NULL, '2026-06-15', '2026-06-15 17:46:41', NULL, '2026-06-15 21:29:19', '2026-06-15 23:46:41');
+(2, 'Don Juan Ganadero', 'ganadero@bovweight.local', '$2y$12$vCBo5n6kIeFQts7HngCKyO1jZD6HLDe7DhcMx6YBpyPZC5MgwaYSO', 'propietario', 'activo', NULL, '2026-06-15', '2026-06-15 17:46:41', NULL, '2026-06-15 21:29:19', '2026-06-15 23:46:41'),
+(3, 'Don Pedro Ganadero', 'ganadero2@bovweight.local', '$2y$12$HpiFwX53J7T4NOg1pFQhcuZshQ778w51qDzlLhNxngVUASV8HBsPW', 'propietario', 'activo', NULL, '2026-06-18', NULL, NULL, '2026-06-18 05:00:00', '2026-06-18 05:00:00');
 
 --
 -- Índices para tablas volcadas
@@ -790,7 +791,7 @@ ALTER TABLE `transferencias_animal`
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Restricciones para tablas volcadas
