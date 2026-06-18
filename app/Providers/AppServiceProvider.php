@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\AccesoCompartido;
 use App\Models\Animal;
 use App\Models\Finca;
 use App\Models\Notificacion;
 use App\Models\Pesaje;
 use App\Models\Rebano;
+use App\Policies\AccesoCompartidoPolicy;
 use App\Policies\AnimalPolicy;
 use App\Policies\FincaPolicy;
 use App\Policies\NotificacionPolicy;
@@ -39,5 +41,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Pesaje::class, PesajePolicy::class);
         Gate::policy(Rebano::class, RebanoPolicy::class);
         Gate::policy(Notificacion::class, NotificacionPolicy::class);
+        Gate::policy(AccesoCompartido::class, AccesoCompartidoPolicy::class);
     }
 }
