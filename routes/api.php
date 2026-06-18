@@ -69,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/razas', [RazaController::class, 'index'])->name('razas.index');
 
     //  Pesajes e Inteligencia Artificial
+    Route::get('/pesajes', [PesajeController::class, 'index'])->name('pesajes.index');
     Route::get('/animales/{animal}/pesajes', [PesajeController::class, 'porAnimal'])->name('animales.pesajes');
     Route::post('/animales/{animal}/pesajes', [PesajeController::class, 'store'])->name('animales.pesajes.store');
     Route::get('/pesajes/{pesaje}', [PesajeController::class, 'show'])->name('pesajes.show');

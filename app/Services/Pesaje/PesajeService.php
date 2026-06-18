@@ -42,6 +42,14 @@ class PesajeService
         }
     }
 
+    public function listarPorUsuario(User $usuario, int $porPagina = 100): LengthAwarePaginator
+    {
+        return $this->consultaParaUsuario($usuario)
+            ->with(['animal.raza', 'animal.finca'])
+            ->orderByDesc('fecha')
+            ->paginate($porPagina);
+    }
+
     public function listarPorAnimal(User $usuario, Animal $animal, int $porPagina = 20): LengthAwarePaginator
     {
         return $this->consultaParaUsuario($usuario)

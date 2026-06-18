@@ -18,6 +18,15 @@ class PesajeController extends Controller
     {
     }
 
+    public function index(Request $request): AnonymousResourceCollection
+    {
+        $pesajes = $this->service->listarPorUsuario(
+            $request->user(),
+            (int) $request->input('per_page', 100),
+        );
+        return PesajeResource::collection($pesajes);
+    }
+
     public function store(StorePesajeRequest $request, Animal $animal): PesajeResource
     {
         $this->authorize('view', $animal);

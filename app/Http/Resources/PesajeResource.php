@@ -27,6 +27,18 @@ class PesajeResource extends JsonResource
             'perimetro_toracico_cm' => $this->perimetro_toracico_cm !== null ? (float) $this->perimetro_toracico_cm : null,
             'largo_cuerpo_cm' => $this->largo_cuerpo_cm !== null ? (float) $this->largo_cuerpo_cm : null,
             'fotografias' => FotografiaResource::collection($this->whenLoaded('fotografias')),
+            'animal' => $this->whenLoaded('animal', fn () => [
+                'id'           => $this->animal->id,
+                'nombre'       => $this->animal->nombre,
+                'arete_senasa' => $this->animal->arete_senasa,
+                'sexo'         => $this->animal->sexo,
+                'raza'         => $this->animal->raza
+                    ? ['id' => $this->animal->raza->id, 'nombre' => $this->animal->raza->nombre]
+                    : null,
+                'finca'        => $this->animal->finca
+                    ? ['id' => $this->animal->finca->id, 'nombre' => $this->animal->finca->nombre]
+                    : null,
+            ]),
         ];
     }
 }
