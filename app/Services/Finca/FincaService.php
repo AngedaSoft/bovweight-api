@@ -23,14 +23,18 @@ class FincaService
             ->get();
     }
 
-    public function crearParaUsuario(User $propietario, array $datos): Finca
+    public function crearParaUsuario(User $creador, array $datos): Finca
     {
+        $propietarioId = ($creador->esAdministrador() && isset($datos['propietario_id']))
+            ? $datos['propietario_id']
+            : $creador->id;
+
         return Finca::create([
-            'propietario_id' => $propietario->id,
-            'nombre' => $datos['nombre'],
-            'provincia' => $datos['provincia'],
-            'canton' => $datos['canton'],
-            'distrito' => $datos['distrito'],
+            'propietario_id' => $propietarioId,
+            'nombre'         => $datos['nombre'],
+            'provincia'      => $datos['provincia'],
+            'canton'         => $datos['canton'],
+            'distrito'       => $datos['distrito'],
             'fecha_creacion' => now()->toDateString(),
         ]);
     }
@@ -51,6 +55,12 @@ class FincaService
         if ($usuario->esAdministrador()) {
             return Finca::query();
         }
+
+        if ($usuario->esVeterinario()) {
+            $ids = $usuario->fincasAsignadas()->pluck('fincas.id');
+            return Finca::query()->whereIn('id', $ids);
+        }
+
         return Finca::query()->where('propietario_id', $usuario->id);
     }
 }

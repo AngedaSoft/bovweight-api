@@ -65,6 +65,12 @@ class AnimalService
         if ($usuario->esAdministrador()) {
             return Animal::query();
         }
+
+        if ($usuario->esVeterinario()) {
+            $fincaIds = $usuario->fincasAsignadas()->pluck('fincas.id');
+            return Animal::query()->whereIn('finca_id', $fincaIds);
+        }
+
         return Animal::query()->whereHas('finca', fn ($q) => $q->where('propietario_id', $usuario->id));
     }
 }

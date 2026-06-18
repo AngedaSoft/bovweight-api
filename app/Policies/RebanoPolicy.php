@@ -29,6 +29,11 @@ class RebanoPolicy
 
     public function view(User $user, Rebano $rebano): bool
     {
+        if ($user->esVeterinario()) {
+            $fincaId = $rebano->finca_id;
+            return $user->fincasAsignadas()->where('fincas.id', $fincaId)->exists();
+        }
+
         return $rebano->finca?->propietario_id === $user->id;
     }
 

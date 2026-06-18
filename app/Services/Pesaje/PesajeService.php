@@ -47,6 +47,12 @@ class PesajeService
         if ($usuario->esAdministrador()) {
             return Pesaje::query();
         }
+
+        if ($usuario->esVeterinario()) {
+            $fincaIds = $usuario->fincasAsignadas()->pluck('fincas.id');
+            return Pesaje::query()->whereHas('animal', fn ($q) => $q->whereIn('finca_id', $fincaIds));
+        }
+
         return Pesaje::query()->whereHas('animal.finca', fn ($q) => $q->where('propietario_id', $usuario->id));
     }
 }

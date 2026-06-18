@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Finca extends Model
@@ -40,5 +41,10 @@ class Finca extends Model
     public function animales(): HasMany
     {
         return $this->hasMany(Animal::class);
+    }
+
+    public function veterinarios(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'finca_veterinario', 'finca_id', 'veterinario_id')->withTimestamps();
     }
 }
