@@ -14,7 +14,7 @@ class AnimalService
     public function listar(User $usuario, array $filtros = [], int $porPagina = 25): LengthAwarePaginator
     {
         $query = $this->consultaParaUsuario($usuario)
-            ->with(['raza', 'ultimoPesaje']);
+            ->with(['raza', 'ultimoPesaje', 'imagenPrincipal']);
 
         if (isset($filtros['finca_id'])) {
             $query->where('finca_id', $filtros['finca_id']);

@@ -22,6 +22,7 @@ class AnimalResource extends JsonResource
             'fecha_asignacion_arete' => $this->fecha_asignacion_arete?->toDateString(),
             'motivo_inactivacion' => $this->motivo_inactivacion,
             'fecha_inactivacion' => $this->fecha_inactivacion?->toDateString(),
+            'imagen_url' => $this->whenLoaded('imagenPrincipal', fn () => $this->imagenPrincipal?->url),
             'raza' => $this->whenLoaded('raza', fn () => [
                 'id' => $this->raza->id,
                 'nombre' => $this->raza->nombre,

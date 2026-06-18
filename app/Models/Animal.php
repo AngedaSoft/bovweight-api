@@ -60,4 +60,14 @@ class Animal extends Model
     {
         return $this->belongsTo(Raza::class);
     }
+
+    public function imagenes(): HasMany
+    {
+        return $this->hasMany(ImagenAnimal::class);
+    }
+
+    public function imagenPrincipal()
+    {
+        return $this->hasOne(ImagenAnimal::class)->latestOfMany();
+    }
 }

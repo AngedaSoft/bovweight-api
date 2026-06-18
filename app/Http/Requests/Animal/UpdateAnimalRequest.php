@@ -17,8 +17,9 @@ class UpdateAnimalRequest extends FormRequest
         $animalId = $this->route('animal')?->id;
 
         return [
+            'finca_id'  => ['sometimes', 'integer', 'exists:fincas,id'],
             'rebano_id' => ['sometimes', 'nullable', 'integer', 'exists:rebanos,id'],
-            'raza_id' => ['sometimes', 'nullable', 'integer', 'exists:razas,id'],
+            'raza_id'   => ['sometimes', 'nullable', 'integer', 'exists:razas,id'],
             'arete_senasa' => [
                 'sometimes', 'string', 'max:50',
                 Rule::unique('animales', 'arete_senasa')->ignore($animalId),

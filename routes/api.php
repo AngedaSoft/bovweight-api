@@ -67,6 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //  Animales y Catálogos
     Route::apiResource('animales', AnimalController::class)->parameters(['animales' => 'animal']);
+    Route::post('/animales/{animal}/imagen', [AnimalController::class, 'subirImagen'])->name('animales.imagen');
     Route::get('/razas', [RazaController::class, 'index'])->name('razas.index');
 
     //  Pesajes e Inteligencia Artificial
