@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -59,6 +60,21 @@ class User extends Authenticatable
     public function fincas(): HasMany
     {
         return $this->hasMany(Finca::class, 'propietario_id');
+    }
+
+    public function fincasAsignadas(): BelongsToMany
+    {
+        return $this->belongsToMany(Finca::class, 'finca_veterinario', 'veterinario_id', 'finca_id')->withTimestamps();
+    }
+
+    public function fincasAccesibles()
+    {
+        return match ($this->rol) {
+            'administrador' => Finca::query(),
+            'propietario'   => Finca::where('propietario_id', $this->id),
+            'veterinario'   => Finca::whereIn('id', $this->fincasAsignadas()->pluck('fincas.id')),
+            default         => Finca::whereRaw('1=0'),
+        };
     }
 
     public function pesajesRegistrados(): HasMany

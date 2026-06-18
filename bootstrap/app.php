@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // La app movil, el panel web y los tests usan Bearer tokens via Sanctum.
         // No habilitamos `statefulApi()` (que exigiria CSRF cookie + XSRF header)
         // porque ningun cliente actual usa sesion por cookies.
+        $middleware->alias([
+            'rol' => \App\Http\Middleware\CheckRol::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (AuthenticationException $e, Request $request) {

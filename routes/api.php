@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AnimalController;
+use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EstimacionController;
@@ -37,6 +38,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/cambiar-contrasena', [AuthController::class, 'changePassword'])->name('auth.password.change');
         Route::post('/avatar', [AuthController::class, 'uploadAvatar'])->name('auth.avatar.upload');
         Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+    });
+
+    // Gestión de Usuarios (solo administrador)
+    Route::middleware('rol:administrador')->group(function () {
+        Route::apiResource('usuarios', UsuarioController::class);
+        Route::get('/usuarios/{usuario}/fincas', [UsuarioController::class, 'fincas'])->name('usuarios.fincas');
+        Route::post('/usuarios/{usuario}/fincas', [UsuarioController::class, 'asignarFincas'])->name('usuarios.fincas.asignar');
     });
 
     //  Dashboard Agregado (Requerimiento #8)

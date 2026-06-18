@@ -14,6 +14,10 @@ class AnimalPolicy
 
     public function view(User $user, Animal $animal): bool
     {
+        if ($user->esVeterinario()) {
+            return $user->fincasAsignadas()->where('fincas.id', $animal->finca_id)->exists();
+        }
+
         return $animal->finca?->propietario_id === $user->id;
     }
 
